@@ -24,6 +24,8 @@ RUN apt-get update \
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 RUN mkdir /app
 
+RUN mkdir /session
+
 WORKDIR /app
 
 COPY package.json yarn.lock ./
