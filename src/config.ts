@@ -19,6 +19,7 @@ const configSchema = z.object({
     .min(1)
     .transform((x) => parseInt(x, 10)),
   GROUP_CHAT_ATTRIBUTE_ID: z.string().min(1).default('participants'),
+  SESSION_STORAGE_PATH: z.string().min(1).optional(),
   IN_DOCKER: z
     .enum(['true', 'false'])
     .default('false')

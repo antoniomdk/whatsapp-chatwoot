@@ -22,25 +22,20 @@ RUN apt-get update \
 # you'll need to launch puppeteer with:
 #     browser.launch({executablePath: 'google-chrome-stable'})
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+RUN mkdir /app
 
-# Install puppeteer so it's available in the container.
-WORKDIR /home/pptruser
-# Run everything after as non-privileged user.
+WORKDIR /app
 
-RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser/Downloads \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /usr/local
+COPY package.json yarn.lock ./
 
-COPY package.json package-lock.json ./
+RUN yarn install
 
+COPY . .
 
-RUN npm --global config set user pptruser \
-    && npm cache clean --force
+RUN yarn build
 
-RUN npm i puppeteer -g
-RUN npm install
+ENTRYPOINT ["/bin/sh", "-c"]
 
-ENTRYPOINT ["/bin/sh", "-c" , "npm install && npm run start"]
+CMD ["yarn start"]
 
 EXPOSE 8080

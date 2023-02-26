@@ -3,7 +3,7 @@
   "packageManager": "yarn@3.3.1",
   "scripts": {
     "dev": "nodemon",
-    "start": "node dist/server.js",
+    "start": "node build/server.js",
     "build": "tsc"
   },
   "devDependencies": {

@@ -18,4 +18,6 @@ lerna-debug.log*
 # Sentry
 .sentryclirc
 
-build
+build/
+
+README.md

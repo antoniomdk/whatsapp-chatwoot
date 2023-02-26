@@ -16,7 +16,7 @@ export class ChatwootAPI {
     this.axiosInstance = axios.create({
       baseURL: `${this.config.CHATWOOT_API_URL}/accounts/${this.config.CHATWOOT_ACCOUNT_ID}`,
       headers: {
-        api_access_token: this.config.CHATWOOT_API_URL
+        api_access_token: this.config.CHATWOOT_API_ACCESS_TOKEN
       }
     })
   }

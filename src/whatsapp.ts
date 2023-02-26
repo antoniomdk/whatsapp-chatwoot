@@ -39,7 +39,7 @@ export default class WhatsApp {
         }
 
     this.clientRef = new Client({
-      authStrategy: new LocalAuth({ clientId: this._clientId }),
+      authStrategy: new LocalAuth({ clientId: this._clientId, dataPath: this.config.SESSION_STORAGE_PATH }),
       puppeteer: {
         // handleSIGINT: false,
         ...puppeteer
@@ -123,6 +123,7 @@ export default class WhatsApp {
 
   public initialize() {
     this.clientRef.initialize().catch((e) => {
+      console.error(e)
       console.log(
         'Error: Unable to initialize WhatsApp.' +
           `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`

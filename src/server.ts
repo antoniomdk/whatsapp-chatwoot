@@ -14,10 +14,12 @@ expressApp.use(
 )
 
 // init api server
-const server = expressApp.listen(config.PORT, () => {
+expressApp.listen(config.PORT, () => {
+  console.log('Server started on port', config.PORT)
   const chatwootApi = new ChatwootAPI(config)
   const whatsapp = new WhatsApp(`inbox_${config.CHATWOOT_INBOX_ID}`, config, chatwootApi)
   whatsapp.client.on('ready', () => {
     console.log('WhatsApp Web client succesfully initialized.')
   })
+  whatsapp.initialize()
 })
