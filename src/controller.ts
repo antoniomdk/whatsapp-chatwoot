@@ -15,6 +15,21 @@ export default class ExpressRoutes {
       })
     })
 
+    express.get('/status', async (req, res) => {
+      const token = req.query.token
+
+      if (token != config.AUTH_TOKEN) {
+        res.status(401).json({
+          result: 'Unauthorized access. Please provide a valid token.'
+        })
+        return
+      }
+
+      res.status(200).json({
+        status: await whatsApp.client.getState()
+      })
+    })
+
     express.get('/qrcode', async (req, res) => {
       const token = req.query.token
 
