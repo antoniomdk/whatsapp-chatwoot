@@ -37,5 +37,3 @@ RUN yarn build
 ENTRYPOINT ["/bin/sh", "-c"]
 
 CMD ["yarn start"]
-
-EXPOSE 8080
