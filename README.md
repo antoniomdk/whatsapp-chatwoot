@@ -1,1 +1,1 @@
-# whatsapp-chatwoot
+# WhatsApp Web for Chatwoot
