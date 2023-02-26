@@ -5,6 +5,19 @@ import MimeTypes from 'mime-types'
 import WhatsApp from './whatsapp'
 import { Config } from './config'
 
+export interface PostMessagePayload {
+  conversationId: string | number
+  message: string
+  type: string
+  isPrivate: boolean
+  messagePrefix?: string
+  attachment?: any
+}
+
+const isGroupChat = (chat: Chat): chat is GroupChat => {
+  return chat.isGroup
+}
+
 export class ChatwootAPI {
   private config: Config
   public whatsAppService: WhatsApp | undefined
@@ -22,8 +35,6 @@ export class ChatwootAPI {
   }
 
   async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined) {
-    const { CHATWOOT_INBOX_ID: chatwootInboxId } = this.config
-
     let chatwootConversation: any = null
     let contactNumber = ''
     let contactName = ''
@@ -39,7 +50,7 @@ export class ChatwootAPI {
 
     //if chat is group chat, whe use the name@groupId as the query to search for the contact
     //otherwhise we search by phone number
-    if (!messageChat.isGroup) {
+    if (!isGroupChat(messageChat)) {
       contactNumber = `+${messageChat.id.user}`
     }
 
@@ -48,46 +59,48 @@ export class ChatwootAPI {
     if (chatwootContact == null) {
       chatwootContact = await this.findChatwootContactByPhone(contactNumber)
 
-      if (chatwootContact == null) {
-        const result = <{ contact: object }>(
-          await this.makeChatwootContact(chatwootInboxId, contactName, contactNumber, contactIdentifier)
-        )
-        chatwootContact = result.contact
+      if (chatwootContact) {
+        // if we found a contact by phone number, we update the identifier
+        await this.updateChatwootContact(chatwootContact.id, {
+          identifier: contactIdentifier
+        })
       } else {
-        //small improvement to update identifier on contacts who don't have WA identifier
-        const updatedData = { identifier: contactIdentifier }
-        await this.updateChatwootContact(chatwootContact.id, updatedData)
+        chatwootContact = this.makeChatwootContact(
+          this.config.CHATWOOT_INBOX_ID,
+          contactName,
+          contactNumber,
+          contactIdentifier
+        )
       }
     } else {
-      chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, chatwootInboxId)
+      chatwootConversation = await this.getChatwootContactConversationByInboxId(
+        chatwootContact.id,
+        this.config.CHATWOOT_INBOX_ID
+      )
     }
 
     if (chatwootConversation == null) {
-      chatwootConversation = await this.makeChatwootConversation(sourceId, chatwootInboxId, chatwootContact.id)
+      chatwootConversation = await this.makeChatwootConversation(
+        sourceId,
+        this.config.CHATWOOT_INBOX_ID,
+        chatwootContact.id
+      )
 
-      //we set the group members if conversation is a group chat
-      if (messageChat.isGroup) {
-        this.updateChatwootConversationGroupParticipants(messageChat as GroupChat)
+      // We set the group members if conversation is a group chat
+      if (isGroupChat(messageChat)) {
+        this.updateChatwootConversationGroupParticipants(messageChat)
       }
     }
 
-    //if message to post on chatwoot is outgoing
-    //it means it was created from other WA cliente (web or device)
-    //therefore we mark it as private so we can filter it
-    //when receiving it from the webhook (in later steps) to avoid duplicated messages
-    let isPrivate = false
-    if (type == 'outgoing') {
-      isPrivate = true
-    }
-
-    await this.postChatwootMessage(
-      chatwootConversation.id as string,
-      message.body,
+    await this.postChatwootMessage({
+      conversationId: chatwootConversation.id,
+      message: message.body,
       type,
-      isPrivate,
+      // This is a hack to avoid duplicated messages when sending messages from web or mobile apps
+      isPrivate: type === 'outgoing',
       messagePrefix,
       attachment
-    )
+    })
   }
 
   async findChatwootContactByIdentifier(identifier: string) {
@@ -152,11 +165,8 @@ export class ChatwootAPI {
       phone_number: phoneNumber,
       identifier: identifier
     }
-
-    const {
-      data: { payload }
-    } = <{ data: Record<string, unknown> }>await this.axiosInstance.post('/contacts', contactPayload)
-    return payload
+    const response = await this.axiosInstance.post('/contacts', contactPayload)
+    return response.data.payload.contact
   }
 
   async updateChatwootContact(contactId: string | number, updatedData: any) {
@@ -186,7 +196,8 @@ export class ChatwootAPI {
 
     const contactIdentifier = `${whatsappGroupChat.id.user}@${whatsappGroupChat.id.server}`
 
-    const participantLabels: Array<string> = []
+    const participantLabels: string[] = []
+
     for (const participant of whatsappGroupChat.participants) {
       const participantIdentifier = `${participant.id.user}@${participant.id.server}`
       const participantContact: Contact = await this.whatsAppService.client.getContactById(participantIdentifier)
@@ -195,35 +206,42 @@ export class ChatwootAPI {
       const participantLabel = `[${participantName} - +${participantContact.number}]`
       participantLabels.push(participantLabel)
     }
+
     const conversationCustomAttributes = {
-      custom_attributes: {
-        [this.config.GROUP_CHAT_ATTRIBUTE_ID]: participantLabels.join(',')
-      }
+      [this.config.GROUP_CHAT_ATTRIBUTE_ID]: participantLabels.join(',')
     }
 
     const chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier)
+
     const chatwootConversation = await this.getChatwootContactConversationByInboxId(
       chatwootContact.id,
       this.config.CHATWOOT_INBOX_ID
     )
+
     this.updateChatwootConversationCustomAttributes(chatwootConversation.id, conversationCustomAttributes)
   }
 
-  async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes: any) {
-    const { data } = <{ data: Record<string, unknown> }>(
-      await this.axiosInstance.post(`/conversations/${conversationId}/custom_attributes`, customAttributes)
+  async updateChatwootConversationCustomAttributes(
+    conversationId: string | number,
+    customAttributes: Record<string, string>
+  ) {
+    const { data } = <{ data: Record<string, unknown> }>await this.axiosInstance.post(
+      `/conversations/${conversationId}/custom_attributes`,
+      {
+        custom_attributes: customAttributes
+      }
     )
     return data
   }
 
-  async postChatwootMessage(
-    conversationId: string | number,
-    message: string,
-    type: string,
-    isPrivate = false,
-    messagePrefix?: string,
-    attachment?: any
-  ) {
+  async postChatwootMessage({
+    message,
+    messagePrefix,
+    type,
+    isPrivate,
+    attachment,
+    conversationId
+  }: PostMessagePayload) {
     const bodyFormData: FormData = new FormData()
 
     if (messagePrefix != null) {
