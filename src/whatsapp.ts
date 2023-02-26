@@ -2,6 +2,7 @@ import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageMedia 
 import qrcode from 'qrcode'
 import { ChatwootAPI } from './chatwootAPI'
 import { Config } from './config'
+import { setFlagsFromString } from 'v8'
 
 export default class WhatsApp {
   private clientRef: Client
@@ -68,6 +69,7 @@ export default class WhatsApp {
         'WhatsApp client is ready' +
           `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
       )
+      this._qrcode = null
     })
 
     this.clientRef.on('message', async (message) => {

@@ -1,6 +1,7 @@
 import express from 'express'
 import { ChatwootAPI } from './chatwootAPI'
 import { loadConfig } from './config'
+import ExpressRoutes from './controller'
 import WhatsApp from './whatsapp'
 
 const config = loadConfig()
@@ -22,4 +23,5 @@ expressApp.listen(config.PORT, () => {
     console.log('WhatsApp Web client succesfully initialized.')
   })
   whatsapp.initialize()
+  ExpressRoutes.configure(expressApp, whatsapp, chatwootApi, config)
 })
