@@ -6,7 +6,7 @@ import { Config } from './config'
 export default class WhatsApp {
   private clientRef: Client
   private _clientId: string
-  private chatwootAPI: ChatwootAPI | undefined
+  private chatwootAPI: ChatwootAPI
   private _qrcode: string | null = null
   private config: Config
 
@@ -22,17 +22,11 @@ export default class WhatsApp {
     return this._qrcode
   }
 
-  public set chatwoot(v: ChatwootAPI | undefined) {
-    this.chatwootAPI = v
-  }
-
-  public get chatwoot(): ChatwootAPI | undefined {
-    return this.chatwootAPI
-  }
-
-  constructor(clientId: string, config: Config) {
+  constructor(clientId: string, config: Config, chatwootAPI: ChatwootAPI) {
     this._clientId = clientId
     this.config = config
+    this.chatwootAPI = chatwootAPI
+    this.chatwootAPI.whatsAppService = this
 
     const puppeteer = this.config.IN_DOCKER
       ? {
@@ -95,7 +89,7 @@ export default class WhatsApp {
         messagePrefix = `${authorContact.name ?? authorContact.pushname ?? authorContact.number}: `
       }
 
-      this.chatwootAPI?.broadcastMessageToChatwoot(message, 'incoming', attachment, messagePrefix)
+      this.chatwootAPI.broadcastMessageToChatwoot(message, 'incoming', attachment, messagePrefix)
     })
 
     this.clientRef.on('message_create', async (message) => {
@@ -111,19 +105,19 @@ export default class WhatsApp {
             attachment = await message.downloadMedia()
           }
 
-          this.chatwootAPI?.broadcastMessageToChatwoot(message, 'outgoing', attachment, '')
+          this.chatwootAPI.broadcastMessageToChatwoot(message, 'outgoing', attachment, '')
         }
       }
     })
 
     this.clientRef.on('group_join', async (groupNotification: GroupNotification) => {
       const groupChat: GroupChat = (await groupNotification.getChat()) as GroupChat
-      this.chatwootAPI?.updateChatwootConversationGroupParticipants(groupChat)
+      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat)
     })
 
     this.clientRef.on('group_leave', async (groupNotification: GroupNotification) => {
       const groupChat: GroupChat = (await groupNotification.getChat()) as GroupChat
-      this.chatwootAPI?.updateChatwootConversationGroupParticipants(groupChat)
+      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat)
     })
   }
 

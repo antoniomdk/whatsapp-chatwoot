@@ -13,15 +13,9 @@ lerna-debug.log*
 
 .eslintcache
 
-*.tsbuildinfo
-next-env.d.ts
-
-.next
-.vercel
 .env*.local
 .env
 # Sentry
 .sentryclirc
 
-# Sentry
-next.config.original.js
+build

@@ -7,17 +7,12 @@ import { Config } from './config'
 
 export class ChatwootAPI {
   private config: Config
-  private whatsappService: WhatsApp
+  public whatsAppService: WhatsApp | undefined
   private axiosInstance: AxiosInstance
 
-  public get whatsapp(): WhatsApp {
-    return this.whatsappService
-  }
-
-  constructor(config: Config, whatsappService: WhatsApp) {
+  constructor(config: Config, whatsappService?: WhatsApp) {
     this.config = config
-    this.whatsappService = whatsappService
-    this.whatsappService.chatwoot = this
+    this.whatsAppService = whatsappService
     this.axiosInstance = axios.create({
       baseURL: `${this.config.CHATWOOT_API_URL}/accounts/${this.config.CHATWOOT_ACCOUNT_ID}`,
       headers: {
@@ -137,7 +132,7 @@ export class ChatwootAPI {
     return payload
   }
 
-  async getChatwootContactById(id: string) {
+  async getChatwootContactById(id: string | number) {
     const {
       data: { payload }
     } = await this.axiosInstance.get(`/contacts/${id}`)
@@ -185,13 +180,16 @@ export class ChatwootAPI {
   }
 
   async updateChatwootConversationGroupParticipants(whatsappGroupChat: GroupChat) {
-    const { whatsappService: whatsappWebService } = this
+    if (!this.whatsAppService) {
+      return
+    }
+
     const contactIdentifier = `${whatsappGroupChat.id.user}@${whatsappGroupChat.id.server}`
 
     const participantLabels: Array<string> = []
     for (const participant of whatsappGroupChat.participants) {
       const participantIdentifier = `${participant.id.user}@${participant.id.server}`
-      const participantContact: Contact = await whatsappWebService.client.getContactById(participantIdentifier)
+      const participantContact: Contact = await this.whatsAppService.client.getContactById(participantIdentifier)
       const participantName: string =
         participantContact.name ?? participantContact.pushname ?? '+' + participantContact.number
       const participantLabel = `[${participantName} - +${participantContact.number}]`
@@ -274,7 +272,7 @@ export class ChatwootAPI {
     return chatwootConversation
   }
 
-  async getChatwootConversationMessages(conversationId: string) {
+  async getChatwootConversationMessages(conversationId: string | number) {
     const {
       data: { payload }
     } = await this.axiosInstance.get(`/conversations/${conversationId}/messages`)
