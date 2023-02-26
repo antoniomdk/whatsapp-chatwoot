@@ -4,6 +4,7 @@ import { Contact, GroupChat, GroupParticipant, MessageContent, MessageMedia } fr
 import { Config } from './config'
 import WhatsApp from './whatsapp'
 import { ChatWootMessage } from './types'
+import qrcode from 'qrcode'
 
 export default class ExpressRoutes {
   public static configure(express: Express, whatsApp: WhatsApp, chatwootAPI: ChatwootAPI, config: Config) {
@@ -12,6 +13,30 @@ export default class ExpressRoutes {
         status: 'OK',
         req: req.ip
       })
+    })
+
+    express.get('/qrcode', async (req, res) => {
+      const token = req.query.token
+
+      if (token != config.AUTH_TOKEN) {
+        res.status(401).json({
+          result: 'Unauthorized access. Please provide a valid token.'
+        })
+        return
+      }
+
+      if (whatsApp.qrcode == null) {
+        res.status(200).send('Session already initialized.')
+        return
+      }
+
+      const img = await qrcode.toBuffer(whatsApp.qrcode)
+
+      res.writeHead(200, {
+        'Content-Type': 'image/png',
+        'Content-Length': img.length
+      })
+      res.end(img)
     })
 
     express.post('/chatwootMessage', async (req, res) => {
