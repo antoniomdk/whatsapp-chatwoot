@@ -41,7 +41,7 @@ export default class ExpressRoutes {
       }
 
       if (whatsApp.qrcode == null) {
-        res.status(200).send('Session already initialized.')
+        res.status(404).send('Session already initialized.')
         return
       }
 
