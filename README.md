@@ -18,3 +18,6 @@
 ## Deployment
 
 Use the provided dockerfile to deploy in Dokku/Heroku, DigitalOcean, etc.
+
+
+> Inspired by this repo: https://github.com/ignusmx/chatwoot-whatsapp-web
