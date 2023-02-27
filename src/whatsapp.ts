@@ -46,19 +46,12 @@ export default class WhatsApp {
     })
 
     this.clientRef.on('qr', (qr) => {
-      console.log(
-        'WhatsApp needs to connect, use the following to QR to authorize it.' +
-          `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
-      )
-
+      console.log('WhatsApp needs to connect, use the following to QR to authorize it.')
       this._qrcode = qr
     })
 
     this.clientRef.on('ready', () => {
-      console.log(
-        'WhatsApp client is ready' +
-          `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
-      )
+      console.log('WhatsApp client is ready')
     })
 
     this.clientRef.on('authenticated', (session) => {
@@ -119,11 +112,8 @@ export default class WhatsApp {
 
   public initialize() {
     this.clientRef.initialize().catch((e) => {
+      console.log('Error: Unable to initialize WhatsApp.')
       console.error(e)
-      console.log(
-        'Error: Unable to initialize WhatsApp.' +
-          `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
-      )
     })
   }
 }
