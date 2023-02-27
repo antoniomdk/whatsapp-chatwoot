@@ -1,8 +1,6 @@
 import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageMedia } from 'whatsapp-web.js'
-import qrcode from 'qrcode'
 import { ChatwootAPI } from './chatwootAPI'
 import { Config } from './config'
-import { setFlagsFromString } from 'v8'
 
 export default class WhatsApp {
   private clientRef: Client
@@ -53,14 +51,6 @@ export default class WhatsApp {
           `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
       )
 
-      qrcode.toString(qr, { type: 'terminal', small: true }, (err, buffer) => {
-        if (!err) {
-          console.log(buffer)
-        } else {
-          console.error(err)
-        }
-      })
-
       this._qrcode = qr
     })
 
@@ -69,6 +59,10 @@ export default class WhatsApp {
         'WhatsApp client is ready' +
           `(Account: ${this.config.CHATWOOT_ACCOUNT_ID}, Inbox: ${this.config.CHATWOOT_INBOX_ID})`
       )
+    })
+
+    this.clientRef.on('authenticated', (session) => {
+      console.log('WhatsApp client is authenticated')
       this._qrcode = null
     })
 
@@ -113,13 +107,13 @@ export default class WhatsApp {
     })
 
     this.clientRef.on('group_join', async (groupNotification: GroupNotification) => {
-      const groupChat: GroupChat = (await groupNotification.getChat()) as GroupChat
-      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat)
+      const groupChat = await groupNotification.getChat()
+      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat as GroupChat)
     })
 
     this.clientRef.on('group_leave', async (groupNotification: GroupNotification) => {
-      const groupChat: GroupChat = (await groupNotification.getChat()) as GroupChat
-      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat)
+      const groupChat = await groupNotification.getChat()
+      this.chatwootAPI.updateChatwootConversationGroupParticipants(groupChat as GroupChat)
     })
   }
 
