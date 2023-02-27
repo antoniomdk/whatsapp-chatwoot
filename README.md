@@ -21,3 +21,10 @@ Use the provided dockerfile to deploy in Dokku/Heroku, DigitalOcean, etc.
 
 
 > Inspired by this repo: https://github.com/ignusmx/chatwoot-whatsapp-web
+
+## TODO
+
+- Add support for contact attachments
+- Add fault tolerance:
+    - Check for unprocessed outgoing messages
+    - Proxy webhook requests to a queue with dead-letter.
