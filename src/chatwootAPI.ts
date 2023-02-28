@@ -4,6 +4,7 @@ import FormData from 'form-data'
 import MimeTypes from 'mime-types'
 import WhatsApp from './whatsapp'
 import { Config } from './config'
+import { logger } from './logger'
 
 export interface PostMessagePayload {
   conversationId: string | number
@@ -47,6 +48,14 @@ export class ChatwootAPI {
     //when chat is private, the name of the chat represents the contact's name
     //when chat is group, the name of the chat represents the group name
     contactName = messageChat.name
+
+    logger.info(`Broadcasting message to chatwoot`, {
+      message: message.body,
+      type,
+      contactIdentifier,
+      contactNumber,
+      contactName
+    })
 
     //if chat is group chat, whe use the name@groupId as the query to search for the contact
     //otherwhise we search by phone number
