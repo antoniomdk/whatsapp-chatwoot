@@ -38,6 +38,8 @@ RUN yarn build
 
 RUN yarn global add pm2
 
+RUN mkdir /app/logs
+
 ENTRYPOINT ["/bin/sh", "-c"]
 
 CMD ["yarn start-prod"]
