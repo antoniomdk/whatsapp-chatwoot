@@ -36,6 +36,8 @@ COPY . .
 
 RUN yarn build
 
+RUN yarn global add pm2
+
 ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["yarn start"]
+CMD ["yarn start-prod"]
