@@ -104,37 +104,13 @@ export class ChatwootAPI {
   }
 
   async findChatwootContactByIdentifier(identifier: string) {
-    const contacts = await this.searchChatwootContacts(identifier)
-    if (contacts.length > 0) {
-      for (const contact of contacts) {
-        //in order to retrieve a chatwoot contact by identifier,
-        //we search contacts with query, however this can get false positives
-        //since query searches for the value in several fields, not just identifier
-        //so we add extra validation to ensure the retrieved contact's identifier
-        //actually matches searched one
-        if (contact.identifier == identifier) {
-          return contact
-        }
-      }
-    }
-    return null
+    const contacts: any[] = await this.searchChatwootContacts(identifier)
+    return contacts.find((contact) => contact.identifier === identifier) ?? null
   }
 
   async findChatwootContactByPhone(phone: string) {
-    const contacts = await this.searchChatwootContacts(phone)
-    if (contacts.length > 0) {
-      for (const contact of contacts) {
-        //in order to retrieve a chatwoot contact by phone,
-        //we search contacts with query, however this can get false positives
-        //since query searches for the value in several fields, not just phone number
-        //so we add extra validation to ensure the retrieved contact's phone number
-        //actually matches searched one
-        if (contact.phone_number == phone) {
-          return contact
-        }
-      }
-    }
-    return null
+    const contacts: any[] = await this.searchChatwootContacts(phone)
+    return contacts.find((contact) => contact.phone_number === phone) ?? null
   }
 
   async searchChatwootContacts(query: string) {
