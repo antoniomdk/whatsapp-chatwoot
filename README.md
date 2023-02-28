@@ -20,6 +20,12 @@
 Use the provided dockerfile to deploy in Dokku/Heroku, DigitalOcean, etc.
 
 
+## Scanning the QR Code
+
+The server exposes a `/qrcode` endpoint that returns the QR image or the text "session already initialized" if the service has already logged in.
+The endpoint is protected, so you need to call it like this: <your host>/qrcode?token=<auth token>. The auth token is any secret you want and you be added to as an env var (check .env.example).
+
+
 > Inspired by this repo: https://github.com/ignusmx/chatwoot-whatsapp-web
 
 ## TODO
