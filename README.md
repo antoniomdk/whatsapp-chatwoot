@@ -14,7 +14,6 @@
 4. Create .env file (check .env.example)
 5. Run server `yarn start`
 
-
 ## Deployment
 
 Use the provided dockerfile to deploy in Dokku/Heroku, DigitalOcean, etc.
