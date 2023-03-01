@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node build/server.js",
-    "start-prod": "pm2-runtime --log /app/logs build/server.js",
+    "start-prod": "pm2-runtime --json --error /app/logs/error.log --output /app/logs/output.log build/server.js",
     "build": "tsc"
   },
   "devDependencies": {
